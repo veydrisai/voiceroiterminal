@@ -70,10 +70,14 @@ export async function POST(request: NextRequest) {
   let vapiCalls: Array<{
     id?: string
     duration?: number
-    analysis?: { intent?: string; outcome?: string }
+    startedAt?: string
+    endedAt?: string
+    analysis?: { intent?: string; outcome?: string; summary?: string }
     endedReason?: string
     metadata?: { twilioCallSid?: string }
     createdAt?: string
+    type?: string
+    status?: string
   }>
 
   try {
@@ -132,9 +136,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const intent = v.analysis?.intent ?? 'unknown'
+    const intent = v.analysis?.intent ?? v.analysis?.summary ?? 'unknown'
     const outcome = v.analysis?.outcome ?? v.endedReason ?? 'unknown'
-    const durationSec = typeof v.duration === 'number' ? v.duration : 0
+    let durationSec = typeof v.duration === 'number' ? v.duration : 0
+    if (!durationSec && v.startedAt && v.endedAt) {
+      durationSec = Math.round((new Date(v.endedAt).getTime() - new Date(v.startedAt).getTime()) / 1000)
+    }
 
     try {
       await sql`
