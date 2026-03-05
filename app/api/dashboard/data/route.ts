@@ -82,9 +82,9 @@ export async function GET(request: NextRequest) {
   const monthlyGrossYield = (monthlyCalls?.c ?? 0) > 0 ? ((monthlyBookings?.c ?? 0) / (monthlyCalls?.c ?? 1)) * 100 : 0
 
   const pipelineRowsRaw = await sql`
-    SELECT c.id, c.created_at, call.from_number AS caller, c.intent, c.outcome, c.revenue_cents
+    SELECT c.id, c.created_at, cl.from_number AS caller, c.intent, c.outcome, c.revenue_cents
     FROM conversations c
-    LEFT JOIN calls call ON call.id = c.call_id
+    LEFT JOIN calls cl ON cl.id = c.call_id
     WHERE c.tenant_id = ${tenantId}
     ORDER BY c.created_at DESC
     LIMIT 50`
@@ -112,7 +112,8 @@ export async function GET(request: NextRequest) {
     lastSync,
   })
   } catch (err) {
-    debugLog('db error')
-    return NextResponse.json({ error: 'Server error' }, { status: 500 })
+    const msg = err instanceof Error ? err.message : String(err)
+    debugLog('db error: ' + msg)
+    return NextResponse.json({ error: 'Server error', detail: msg }, { status: 500 })
   }
 }
