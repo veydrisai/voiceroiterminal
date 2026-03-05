@@ -20,6 +20,7 @@ type DemoSessionState = {
   pipelineRows: PipelineRow[]
   lastSync: string
   connectStatus: ConnectStatus
+  backendError: string | null
 }
 
 type DemoSessionContextValue = DemoSessionState & {
@@ -31,18 +32,26 @@ type DemoSessionContextValue = DemoSessionState & {
 
 const DemoSessionContext = createContext<DemoSessionContextValue | null>(null)
 
-async function fetchDashboardData(): Promise<{ kpis: KPIs; pipelineRows: PipelineRow[]; lastSync: string } | null> {
+type FetchResult =
+  | { ok: true; kpis: KPIs; pipelineRows: PipelineRow[]; lastSync: string }
+  | { ok: false; status: number; message: string }
+
+async function fetchDashboardData(): Promise<FetchResult> {
   try {
     const res = await fetch('/api/dashboard/data', { credentials: 'include' })
-    if (!res.ok) return null
-    const data = await res.json()
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      const message = (data?.error as string) || (res.status === 401 ? 'Please log in again' : `Request failed (${res.status})`)
+      return { ok: false, status: res.status, message }
+    }
     return {
+      ok: true,
       kpis: data.kpis ?? initialKPIs,
       pipelineRows: Array.isArray(data.pipelineRows) ? data.pipelineRows : emptyPipeline,
       lastSync: data.lastSync ?? defaultLastSync,
     }
   } catch {
-    return null
+    return { ok: false, status: 0, message: 'Network error — check your connection' }
   }
 }
 
@@ -54,21 +63,26 @@ export function DemoSessionProvider({ children, initialLoggedIn = false }: { chi
     pipelineRows: emptyPipeline,
     lastSync: defaultLastSync,
     connectStatus: 'idle',
+    backendError: null,
   })
 
   const loadDashboardData = useCallback(async (setStatus = true) => {
-    if (setStatus) setState((prev) => ({ ...prev, connectStatus: 'connecting' }))
-    const data = await fetchDashboardData()
-    if (data) {
+    if (setStatus) setState((prev) => ({ ...prev, connectStatus: 'connecting', backendError: null }))
+    const result = await fetchDashboardData()
+    if (result.ok) {
       setState((prev) => ({
         ...prev,
-        kpis: data.kpis,
-        pipelineRows: data.pipelineRows,
-        lastSync: data.lastSync,
-        ...(setStatus && { connectStatus: 'connected' as const }),
+        kpis: result.kpis,
+        pipelineRows: result.pipelineRows,
+        lastSync: result.lastSync,
+        ...(setStatus && { connectStatus: 'connected' as const, backendError: null }),
       }))
     } else if (setStatus) {
-      setState((prev) => ({ ...prev, connectStatus: 'unavailable' }))
+      setState((prev) => ({
+        ...prev,
+        connectStatus: 'unavailable',
+        backendError: result.message,
+      }))
     }
   }, [])
 
@@ -86,6 +100,7 @@ export function DemoSessionProvider({ children, initialLoggedIn = false }: { chi
         pipelineRows: emptyPipeline,
         lastSync: defaultLastSync,
         connectStatus: 'idle',
+        backendError: null,
       }
     })
   }, [])
@@ -96,20 +111,22 @@ export function DemoSessionProvider({ children, initialLoggedIn = false }: { chi
   }, [loadDashboardData])
 
   const refreshData = useCallback(async () => {
-    setState((prev) => ({ ...prev, connectStatus: 'connecting' }))
-    const data = await fetchDashboardData()
-    if (data) {
+    setState((prev) => ({ ...prev, connectStatus: 'connecting', backendError: null }))
+    const result = await fetchDashboardData()
+    if (result.ok) {
       setState((prev) => ({
         ...prev,
-        kpis: data.kpis,
-        pipelineRows: data.pipelineRows,
-        lastSync: data.lastSync,
+        kpis: result.kpis,
+        pipelineRows: result.pipelineRows,
+        lastSync: result.lastSync,
         connectStatus: 'connected',
+        backendError: null,
       }))
     } else {
       setState((prev) => ({
         ...prev,
         connectStatus: 'unavailable',
+        backendError: result.message,
       }))
     }
   }, [])

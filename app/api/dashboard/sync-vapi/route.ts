@@ -40,7 +40,9 @@ export async function POST(request: NextRequest) {
   const vapiApiKey = cred?.vapi_api_key?.trim()
   if (!vapiApiKey) {
     return NextResponse.json(
-      { error: 'Add your Vapi API key in Settings (save the form), then try Sync again.' },
+      {
+        error: 'Only your Vapi API key is needed for Sync. In Settings, paste your Private API key from dashboard.vapi.ai, click Save changes, then try Sync again.',
+      },
       { status: 400 }
     )
   }

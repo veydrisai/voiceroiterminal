@@ -14,7 +14,7 @@ function isActive(pathname: string, href: string): boolean {
 export default function Sidebar() {
   const pathname = usePathname()
   const { session, logout, isLoggingOut } = useSession()
-  const { connectDashboard, connectStatus } = useDemoSession()
+  const { connectDashboard, connectStatus, backendError } = useDemoSession()
   const modules = getModulesForNav(session?.allowedModules, session?.role === 'admin')
 
   return (
@@ -43,7 +43,9 @@ export default function Sidebar() {
           <p className="connect-status connected">Connected</p>
         )}
         {connectStatus === 'unavailable' && (
-          <p className="connect-status">Backend unavailable. Check you’re logged in and try again.</p>
+          <p className="connect-status" role="alert">
+            {backendError || "Backend unavailable. Check you’re logged in and try again."
+          </p>
         )}
       </div>
 

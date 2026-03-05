@@ -48,10 +48,11 @@ export async function PUT(request: NextRequest) {
     allowedModules: session.allowedModules,
   })
 
+  const vapiKey = (body.vapiApiKey ?? body.vapi_api_key ?? '').toString().trim() || null
   const sql = getSql()
   await sql`
     INSERT INTO tenant_credentials (tenant_id, twilio_account_sid, twilio_auth_token, vapi_api_key, crm_endpoint, webhook_secret)
-    VALUES (${tenantId}, ${body.twilioAccountSid || null}, ${body.twilioAuthToken || null}, ${body.vapiApiKey || null}, ${body.crmEndpoint || null}, ${body.webhookSecret || null})
+    VALUES (${tenantId}, ${body.twilioAccountSid || null}, ${body.twilioAuthToken || null}, ${vapiKey}, ${body.crmEndpoint || null}, ${body.webhookSecret || null})
     ON CONFLICT (tenant_id) DO UPDATE SET
       twilio_account_sid = EXCLUDED.twilio_account_sid,
       twilio_auth_token = EXCLUDED.twilio_auth_token,
