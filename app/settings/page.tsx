@@ -76,7 +76,7 @@ export default function SettingsPage() {
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
-        setApiKeyMsg({ text: err?.error || ‘Failed to save. Check you’re logged in.’, ok: false })
+        setApiKeyMsg({ text: err?.error || ‘Failed to save. Check you are logged in.’, ok: false })
         return
       }
       setApiKeyMsg({ text: ‘Saved. Use “Sync from Vapi” on the dashboard to load data.’, ok: true })
