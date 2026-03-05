@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
     LIMIT 50`
   const pipelineRows = (pipelineRowsRaw as { id: string; created_at: Date; caller: string | null; intent: string | null; outcome: string | null; revenue_cents: number }[]).map((r) => ({
     id: r.id,
-    time: new Date(r.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+    time: new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ' + new Date(r.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
     caller: r.caller ?? 'Unknown',
     intent: labelIntent(r.intent),
     outcome: labelOutcome(r.outcome),

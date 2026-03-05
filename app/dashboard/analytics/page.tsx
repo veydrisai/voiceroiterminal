@@ -13,13 +13,15 @@ export default function ConversationAnalyticsPage() {
   const [range, setRange] = useState<'7d' | '30d'>('7d')
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState<string | null>(null)
 
   useEffect(() => {
     setLoading(true)
+    setFetchError(null)
     fetch(`/api/dashboard/analytics?range=${range}`, { credentials: 'include' })
       .then((r) => r.json())
       .then((d) => { setData(d); setLoading(false) })
-      .catch(() => setLoading(false))
+      .catch(() => { setFetchError('Failed to load analytics data.'); setLoading(false) })
   }, [range])
 
   const hasData = (data?.total ?? 0) > 0 || (data?.byOutcome?.length ?? 0) > 0 || (data?.topIntents?.length ?? 0) > 0
@@ -43,6 +45,10 @@ export default function ConversationAnalyticsPage() {
             {[0,1,2].map(i => <div key={i} className="ios-card skeleton-card" />)}
           </div>
           <div className="ios-card section-card skeleton-card" style={{ height: 120 }} />
+        </div>
+      ) : fetchError ? (
+        <div className="ios-card section-card" style={{ padding: 24 }}>
+          <p className="auth-error" style={{ margin: 0 }}>{fetchError}</p>
         </div>
       ) : !hasData ? (
         <div className="ios-card section-card" style={{ padding: 24 }}>

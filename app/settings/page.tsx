@@ -32,7 +32,8 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [revenueSaving, setRevenueSaving] = useState(false)
-  const [message, setMessage] = useState<string | null>(null)
+  const [apiKeyMsg, setApiKeyMsg] = useState<{ text: string; ok: boolean } | null>(null)
+  const [revenueMsg, setRevenueMsg] = useState<{ text: string; ok: boolean } | null>(null)
 
   useEffect(() => {
     Promise.all([
@@ -64,23 +65,23 @@ export default function SettingsPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setMessage(null)
+    setApiKeyMsg(null)
     setSaving(true)
     try {
-      const res = await fetch('/api/users/api-keys', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+      const res = await fetch(‘/api/users/api-keys’, {
+        method: ‘PUT’,
+        headers: { ‘Content-Type’: ‘application/json’ },
+        credentials: ‘include’,
         body: JSON.stringify(keys),
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
-        setMessage(err?.error || 'Failed to save. Check you’re logged in.')
+        setApiKeyMsg({ text: err?.error || ‘Failed to save. Check you’re logged in.’, ok: false })
         return
       }
-      setMessage('Saved. Your API keys are stored. Use “Connect Dashboard” or “Sync from Vapi” to load data.')
+      setApiKeyMsg({ text: ‘Saved. Use “Sync from Vapi” on the dashboard to load data.’, ok: true })
     } catch {
-      setMessage('Something went wrong')
+      setApiKeyMsg({ text: ‘Something went wrong’, ok: false })
     } finally {
       setSaving(false)
     }
@@ -88,25 +89,25 @@ export default function SettingsPage() {
 
   async function handleRevenueSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setMessage(null)
+    setRevenueMsg(null)
     setRevenueSaving(true)
     try {
-      const res = await fetch('/api/users/revenue-settings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+      const res = await fetch(‘/api/users/revenue-settings’, {
+        method: ‘PUT’,
+        headers: { ‘Content-Type’: ‘application/json’ },
+        credentials: ‘include’,
         body: JSON.stringify({
-          defaultRevenuePerBooking: revenue.defaultRevenuePerBooking === '' ? undefined : Number(revenue.defaultRevenuePerBooking),
+          defaultRevenuePerBooking: revenue.defaultRevenuePerBooking === ‘’ ? undefined : Number(revenue.defaultRevenuePerBooking),
           currency: revenue.currency || undefined,
         }),
       })
       if (!res.ok) {
-        setMessage('Failed to save revenue settings')
+        setRevenueMsg({ text: ‘Failed to save revenue settings’, ok: false })
         return
       }
-      setMessage('Revenue settings saved.')
+      setRevenueMsg({ text: ‘Revenue settings saved.’, ok: true })
     } catch {
-      setMessage('Something went wrong')
+      setRevenueMsg({ text: ‘Something went wrong’, ok: false })
     } finally {
       setRevenueSaving(false)
     }
@@ -160,7 +161,7 @@ export default function SettingsPage() {
                         />
                       </label>
                     ))}
-                    {message && <p className={message.startsWith('Saved') ? 'admin-msg-ok' : 'auth-error'}>{message}</p>}
+                    {apiKeyMsg && <p className={apiKeyMsg.ok ? 'admin-msg-ok' : 'auth-error'}>{apiKeyMsg.text}</p>}
                     <button type="submit" className="auth-submit liquid-btn" disabled={saving}>
                       {saving ? 'Saving…' : 'Save changes'}
                     </button>
@@ -199,6 +200,7 @@ export default function SettingsPage() {
                         placeholder="USD"
                       />
                     </label>
+                    {revenueMsg && <p className={revenueMsg.ok ? 'admin-msg-ok' : 'auth-error'}>{revenueMsg.text}</p>}
                     <button type="submit" className="auth-submit liquid-btn" disabled={revenueSaving}>
                       {revenueSaving ? 'Saving…' : 'Save revenue settings'}
                     </button>
