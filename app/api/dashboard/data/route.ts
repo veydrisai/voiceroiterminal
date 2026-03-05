@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { parseSessionCookie, SESSION_COOKIE } from '@/lib/auth'
 import { getSql } from '@/lib/db'
 import { getOrCreateTenant, getTenantByUserId } from '@/lib/db-helpers'
+import { labelIntent, labelOutcome } from '@/lib/vapiLabels'
 
 export const dynamic = 'force-dynamic'
 
@@ -92,8 +93,8 @@ export async function GET(request: NextRequest) {
     id: r.id,
     time: new Date(r.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
     caller: r.caller ?? 'Unknown',
-    intent: r.intent ?? 'Unknown',
-    outcome: r.outcome ?? 'Unknown',
+    intent: labelIntent(r.intent),
+    outcome: labelOutcome(r.outcome),
     revenue: Math.round((r.revenue_cents ?? 0) / 100),
   }))
 

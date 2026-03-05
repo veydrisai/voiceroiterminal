@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { parseSessionCookie, SESSION_COOKIE } from '@/lib/auth'
 import { getSql } from '@/lib/db'
 import { getTenantByUserId } from '@/lib/db-helpers'
+import { labelIntent, labelOutcome } from '@/lib/vapiLabels'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,12 +32,12 @@ export async function GET(request: NextRequest) {
     const total = (totalRows as { c: number }[])[0]?.c ?? 0
     const avgDuration = (durationRows as { avg: number }[])[0]?.avg ?? 0
     const byOutcome = (outcomeRows as { outcome: string; c: number }[]).map((r) => ({
-      outcome: r.outcome ?? 'unknown',
+      outcome: labelOutcome(r.outcome),
       count: r.c,
       pct: total > 0 ? Math.round((r.c / total) * 100) : 0,
     }))
     const topIntents = (intentRows as { intent: string; c: number }[]).map((r) => ({
-      intent: r.intent ?? 'unknown',
+      intent: labelIntent(r.intent),
       count: r.c,
     }))
 
