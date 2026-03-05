@@ -18,10 +18,10 @@ const FIELDS = [
 ] as const
 
 const API_KEY_LINKS = [
-  { name: 'Twilio Console', url: 'https://console.twilio.com', note: 'Account → Account info → Account SID & Auth token' },
-  { name: 'Twilio Sign up', url: 'https://www.twilio.com/try-twilio', note: 'If you don’t have an account' },
-  { name: 'Vapi Dashboard', url: 'https://dashboard.vapi.ai', note: 'Settings / API Keys → Private API Key' },
-  { name: 'Vapi Sign up', url: 'https://vapi.ai', note: 'If you don’t have an account' },
+  { name: 'Twilio Console', url: 'https://console.twilio.com', note: 'Account info - Account SID & Auth token' },
+  { name: 'Twilio Sign up', url: 'https://www.twilio.com/try-twilio', note: 'If you do not have an account' },
+  { name: 'Vapi Dashboard', url: 'https://dashboard.vapi.ai', note: 'Settings / API Keys - Private API Key' },
+  { name: 'Vapi Sign up', url: 'https://vapi.ai', note: 'If you do not have an account' },
   { name: 'Make.com', url: 'https://www.make.com', note: 'Create a scenario; send appointments to your webhook URL' },
 ] as const
 
@@ -68,20 +68,20 @@ export default function SettingsPage() {
     setApiKeyMsg(null)
     setSaving(true)
     try {
-      const res = await fetch(‘/api/users/api-keys’, {
-        method: ‘PUT’,
-        headers: { ‘Content-Type’: ‘application/json’ },
-        credentials: ‘include’,
+      const res = await fetch('/api/users/api-keys', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(keys),
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
-        setApiKeyMsg({ text: err?.error || ‘Failed to save. Check you are logged in.’, ok: false })
+        setApiKeyMsg({ text: err?.error || 'Failed to save. Check you are logged in.', ok: false })
         return
       }
-      setApiKeyMsg({ text: ‘Saved. Use “Sync from Vapi” on the dashboard to load data.’, ok: true })
+      setApiKeyMsg({ text: 'Saved. Use Sync from Vapi on the dashboard to load data.', ok: true })
     } catch {
-      setApiKeyMsg({ text: ‘Something went wrong’, ok: false })
+      setApiKeyMsg({ text: 'Something went wrong', ok: false })
     } finally {
       setSaving(false)
     }
@@ -92,22 +92,22 @@ export default function SettingsPage() {
     setRevenueMsg(null)
     setRevenueSaving(true)
     try {
-      const res = await fetch(‘/api/users/revenue-settings’, {
-        method: ‘PUT’,
-        headers: { ‘Content-Type’: ‘application/json’ },
-        credentials: ‘include’,
+      const res = await fetch('/api/users/revenue-settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
-          defaultRevenuePerBooking: revenue.defaultRevenuePerBooking === ‘’ ? undefined : Number(revenue.defaultRevenuePerBooking),
+          defaultRevenuePerBooking: revenue.defaultRevenuePerBooking === '' ? undefined : Number(revenue.defaultRevenuePerBooking),
           currency: revenue.currency || undefined,
         }),
       })
       if (!res.ok) {
-        setRevenueMsg({ text: ‘Failed to save revenue settings’, ok: false })
+        setRevenueMsg({ text: 'Failed to save revenue settings', ok: false })
         return
       }
-      setRevenueMsg({ text: ‘Revenue settings saved.’, ok: true })
+      setRevenueMsg({ text: 'Revenue settings saved.', ok: true })
     } catch {
-      setRevenueMsg({ text: ‘Something went wrong’, ok: false })
+      setRevenueMsg({ text: 'Something went wrong', ok: false })
     } finally {
       setRevenueSaving(false)
     }
@@ -124,7 +124,7 @@ export default function SettingsPage() {
               <p className="settings-desc">Update your API keys and integration endpoints. These are used when you connect the dashboard.</p>
 
               <div className="settings-card liquid-card">
-                <h2 className="settings-card-title">API & Integrations</h2>
+                <h2 className="settings-card-title">API &amp; Integrations</h2>
                 <p className="settings-help">
                   Use your own accounts: each client enters their own Twilio, Vapi, and Make.com details. Admin can use their keys here to verify live data.
                 </p>
@@ -141,11 +141,11 @@ export default function SettingsPage() {
                     ))}
                   </ul>
                   <p className="settings-help">
-                    Full guide: <code className="settings-code">docs/CLIENT_SETUP_GUIDE.md</code> in the repo (or ask your admin for the “Where to get API keys” doc).
+                    Full guide: <code className="settings-code">docs/CLIENT_SETUP_GUIDE.md</code> in the repo.
                   </p>
                 </details>
                 {loading ? (
-                  <p className="admin-muted">Loading…</p>
+                  <p className="admin-muted">Loading...</p>
                 ) : (
                   <form onSubmit={handleSubmit} className="settings-form">
                     {FIELDS.map((f) => (
@@ -163,7 +163,7 @@ export default function SettingsPage() {
                     ))}
                     {apiKeyMsg && <p className={apiKeyMsg.ok ? 'admin-msg-ok' : 'auth-error'}>{apiKeyMsg.text}</p>}
                     <button type="submit" className="auth-submit liquid-btn" disabled={saving}>
-                      {saving ? 'Saving…' : 'Save changes'}
+                      {saving ? 'Saving...' : 'Save changes'}
                     </button>
                   </form>
                 )}
@@ -175,7 +175,7 @@ export default function SettingsPage() {
                   Set your default revenue per booking (used when a booking has no value). You can view and change these anytime.
                 </p>
                 {loading ? (
-                  <p className="admin-muted">Loading…</p>
+                  <p className="admin-muted">Loading...</p>
                 ) : (
                   <form onSubmit={handleRevenueSubmit} className="settings-form">
                     <label className="settings-field">
@@ -202,7 +202,7 @@ export default function SettingsPage() {
                     </label>
                     {revenueMsg && <p className={revenueMsg.ok ? 'admin-msg-ok' : 'auth-error'}>{revenueMsg.text}</p>}
                     <button type="submit" className="auth-submit liquid-btn" disabled={revenueSaving}>
-                      {revenueSaving ? 'Saving…' : 'Save revenue settings'}
+                      {revenueSaving ? 'Saving...' : 'Save revenue settings'}
                     </button>
                   </form>
                 )}
