@@ -13,9 +13,28 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
+  min-height: 100dvh;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: #09090b;
+  /* Prevent iOS rubber-band overscroll showing white */
+  overscroll-behavior: none;
+}
+
+/* PWA / standalone mode — handle safe areas for notch + home bar */
+@supports (padding-top: env(safe-area-inset-top)) {
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* Prevent text selection callouts on iOS */
+* {
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* iOS-style transitions */
