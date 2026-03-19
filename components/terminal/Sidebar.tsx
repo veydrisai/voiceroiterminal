@@ -19,7 +19,13 @@ export default function Sidebar() {
 
   return (
     <aside className="terminal-sidebar">
-      <div className="terminal-logo">VoiceROI Terminal</div>
+      <div className="terminal-logo">
+        <div className="terminal-logo-mark">C</div>
+        <div>
+          <div className="terminal-logo-name">CaptureOS</div>
+          <div className="terminal-logo-sub">revenuecs.com</div>
+        </div>
+      </div>
       {session && (
         <div className="sidebar-user">
           <span className="sidebar-user-email">{session.email}</span>

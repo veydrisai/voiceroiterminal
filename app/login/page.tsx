@@ -55,37 +55,55 @@ export default function LoginPage() {
   return (
     <div className="auth-shell">
       <div className="auth-bg" />
-      <div className="auth-card liquid-card">
-        <h1 className="auth-title">VoiceROI Terminal</h1>
-        <p className="auth-subtitle">Sign in to your account. No sign-up—accounts are created by your admin.</p>
+      <div className="auth-card">
+
+        {/* Logo */}
+        <div className="auth-logo">
+          <div className="auth-logo-mark">C</div>
+          <div>
+            <div className="auth-logo-name">CaptureOS</div>
+            <div className="auth-logo-domain">revenuecs.com</div>
+          </div>
+        </div>
+
+        <h1 className="auth-title">Welcome back</h1>
+        <p className="auth-subtitle">
+          Sign in to your account. Access is managed by your admin.
+        </p>
+
         <form onSubmit={handleSubmit} className="auth-form">
-          <label className="auth-label">Email</label>
-          <input
-            type="email"
-            className="auth-input"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@company.com"
-            autoComplete="email"
-            required
-          />
-          <label className="auth-label">Password</label>
-          <input
-            type="password"
-            className="auth-input"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
-            autoComplete="current-password"
-            required
-          />
+          <div>
+            <label className="auth-label">Email</label>
+            <input
+              type="email"
+              className="auth-input"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@company.com"
+              autoComplete="email"
+              required
+            />
+          </div>
+          <div>
+            <label className="auth-label">Password</label>
+            <input
+              type="password"
+              className="auth-input"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              autoComplete="current-password"
+              required
+            />
+          </div>
           {error && <p className="auth-error" role="alert">{error}</p>}
-          <button type="submit" className="auth-submit liquid-btn" disabled={loading}>
+          <button type="submit" className="auth-submit" disabled={loading}>
             {loading ? 'Signing in…' : 'Sign in'}
           </button>
         </form>
+
         <p className="auth-hint">
-          No public sign-up. Get an account from your admin.
+          No public sign-up · Accounts are created by your admin
         </p>
       </div>
     </div>

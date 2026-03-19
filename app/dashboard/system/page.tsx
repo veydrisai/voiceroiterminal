@@ -51,7 +51,7 @@ export default function SystemPage() {
 
       <div className="ios-card section-card">
         <h2 className="section-title">About</h2>
-        <p className="section-description" style={{ marginBottom: 0 }}>VoiceROI Terminal</p>
+        <p className="section-description" style={{ marginBottom: 0 }}>CaptureOS</p>
       </div>
     </div>
   )
