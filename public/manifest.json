@@ -1,11 +1,11 @@
 {
-  "name": "VoiceROI Terminal",
-  "short_name": "VoiceROI",
-  "description": "Voice ROI Terminal Dashboard",
+  "name": "CaptureOS",
+  "short_name": "CaptureOS",
+  "description": "CaptureOS — AI Revenue Platform by RevenueCapture",
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#09090b",
-  "theme_color": "#09090b",
+  "background_color": "#0D1A0D",
+  "theme_color": "#0D1A0D",
   "orientation": "portrait-primary",
   "icons": [
     {

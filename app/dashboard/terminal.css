@@ -64,8 +64,6 @@
   height: 34px;
   border-radius: 8px;
   object-fit: contain;
-  background: #fff;
-  padding: 3px;
   flex-shrink: 0;
   box-shadow: 0 0 14px rgba(168, 255, 71, 0.2);
 }
