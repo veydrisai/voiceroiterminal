@@ -20,7 +20,7 @@ export default function Sidebar() {
   return (
     <aside className="terminal-sidebar">
       <div className="terminal-logo">
-        <div className="terminal-logo-mark">C</div>
+        <img src="/logo.svg" alt="CaptureOS" className="terminal-logo-img" />
         <div>
           <div className="terminal-logo-name">CaptureOS</div>
           <div className="terminal-logo-sub">revenuecs.com</div>

@@ -58,20 +58,15 @@
   margin-bottom: 32px;
 }
 
-.auth-logo-mark {
-  width: 36px;
-  height: 36px;
+.auth-logo-img {
+  width: 40px;
+  height: 40px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #A8FF47 0%, #6ee73a 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  font-weight: 800;
-  color: #0D1A0D;
-  letter-spacing: -0.04em;
-  box-shadow: 0 0 20px rgba(168, 255, 71, 0.3);
+  object-fit: contain;
+  background: #fff;
+  padding: 4px;
   flex-shrink: 0;
+  box-shadow: 0 0 20px rgba(168, 255, 71, 0.2);
 }
 
 .auth-logo-name {

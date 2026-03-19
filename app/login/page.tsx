@@ -59,7 +59,7 @@ export default function LoginPage() {
 
         {/* Logo */}
         <div className="auth-logo">
-          <div className="auth-logo-mark">C</div>
+          <img src="/logo.svg" alt="CaptureOS" className="auth-logo-img" />
           <div>
             <div className="auth-logo-name">CaptureOS</div>
             <div className="auth-logo-domain">revenuecs.com</div>
