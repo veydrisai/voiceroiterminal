@@ -53,10 +53,13 @@ const INTENT_MAP: Record<string, string> = {
   'sales': 'Sales',
 }
 
-// Keywords that signal a booking happened — checked against intent + summary text
+// Keywords for keyword-based classification
 const BOOKING_KEYWORDS = ['book', 'booked', 'booking', 'appointment', 'scheduled', 'confirmed', 'reservation']
 const CANCEL_KEYWORDS = ['cancel', 'cancelled', 'cancellation', 'refund']
 const CALLBACK_KEYWORDS = ['callback', 'call back', 'follow up', 'follow-up', 'voicemail']
+const PRICING_KEYWORDS = ['quote', 'price', 'pricing', 'cost', 'rate', 'how much', 'estimate']
+const SUPPORT_KEYWORDS = ['help', 'assist', 'support', 'question', 'issue', 'problem', 'repair']
+const COMPLAINT_KEYWORDS = ['complaint', 'unhappy', 'dissatisfied', 'wrong', 'mistake', 'terrible']
 
 function containsAny(text: string, keywords: string[]): boolean {
   const lower = text.toLowerCase()
@@ -78,6 +81,11 @@ export function labelOutcome(
   // Explicit outcome map takes highest priority
   if (OUTCOME_MAP[key]) return OUTCOME_MAP[key]
 
+  // Catch Vapi/Deepgram error strings (e.g. "Call.In Progress.Error Vapifault Deepgram Transcriber Failed")
+  if (key.includes('error') || key.includes('failed') || key.includes('fault') || key.includes('transcriber')) {
+    return 'System Error'
+  }
+
   // Keyword detection across outcome + intent + summary
   const combined = [raw, intentRaw, summaryRaw].filter(Boolean).join(' ')
   if (containsAny(combined, BOOKING_KEYWORDS)) return 'Booked'
@@ -89,12 +97,25 @@ export function labelOutcome(
 
 /**
  * Label the intent. Checks keyword map first, then keyword detection in summary.
+ * When raw intent is null (Vapi didn't set it), classifies from summary text.
  */
 export function labelIntent(
   raw: string | null | undefined,
   summaryRaw?: string | null,
 ): string {
-  if (!raw) return 'General Inquiry'
+  // No intent field from Vapi — classify from summary text, fallback to General Inquiry
+  if (!raw) {
+    if (summaryRaw) {
+      if (containsAny(summaryRaw, BOOKING_KEYWORDS)) return 'Booked'
+      if (containsAny(summaryRaw, CANCEL_KEYWORDS)) return 'Cancellation'
+      if (containsAny(summaryRaw, CALLBACK_KEYWORDS)) return 'Callback Request'
+      if (containsAny(summaryRaw, PRICING_KEYWORDS)) return 'Pricing Inquiry'
+      if (containsAny(summaryRaw, COMPLAINT_KEYWORDS)) return 'Complaint'
+      if (containsAny(summaryRaw, SUPPORT_KEYWORDS)) return 'Support'
+    }
+    return 'General Inquiry'
+  }
+
   const key = raw.trim().toLowerCase()
 
   if (INTENT_MAP[key]) return INTENT_MAP[key]
@@ -103,15 +124,18 @@ export function labelIntent(
   if (containsAny(raw, BOOKING_KEYWORDS)) return 'Booked'
   if (containsAny(raw, CANCEL_KEYWORDS)) return 'Cancellation'
   if (containsAny(raw, CALLBACK_KEYWORDS)) return 'Callback Request'
+  if (containsAny(raw, PRICING_KEYWORDS)) return 'Pricing Inquiry'
+  if (containsAny(raw, SUPPORT_KEYWORDS)) return 'Support'
 
   // Keyword detection in summary if provided
   if (summaryRaw) {
     if (containsAny(summaryRaw, BOOKING_KEYWORDS)) return 'Booked'
     if (containsAny(summaryRaw, CANCEL_KEYWORDS)) return 'Cancellation'
+    if (containsAny(summaryRaw, PRICING_KEYWORDS)) return 'Pricing Inquiry'
   }
 
-  // For AI-generated summaries (long strings), truncate and title-case
-  if (raw.length > 60) return toTitleCase(raw.slice(0, 57)) + '…'
+  // Long AI-generated strings that slipped through — don't store them, default to General Inquiry
+  if (raw.length > 40) return 'General Inquiry'
   return toTitleCase(raw)
 }
 

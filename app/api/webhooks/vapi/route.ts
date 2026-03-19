@@ -4,6 +4,14 @@ import { labelIntent, labelOutcome } from '@/lib/vapiLabels'
 
 export async function POST(request: NextRequest) {
   try {
+    const vapiSecret = process.env.VAPI_WEBHOOK_SECRET;
+    if (vapiSecret) {
+      const signature = request.headers.get('x-vapi-signature');
+      if (!signature || signature !== vapiSecret) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+    }
+
     const body = await request.json()
     const { message } = body
 
@@ -20,10 +28,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing call identifier' }, { status: 400 })
     }
 
-    const rawIntent = message?.analysis?.intent ?? message?.analysis?.summary ?? 'unknown'
+    // Keep intent and summary separate — don't fall back to summary as raw intent
+    const rawIntent = message?.analysis?.intent ?? null
+    const summary = message?.analysis?.summary ?? null
     const rawOutcome = message?.analysis?.outcome ?? message?.endedReason ?? 'unknown'
-    const intent = labelIntent(rawIntent)
-    const outcome = labelOutcome(rawOutcome, rawIntent, message?.analysis?.summary)
+    const intent = labelIntent(rawIntent, summary)
+    const outcome = labelOutcome(rawOutcome, rawIntent, summary)
     const duration = call?.duration || 0
 
     const sql = getSql()

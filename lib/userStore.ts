@@ -59,11 +59,14 @@ function generateId(): string {
 }
 
 function seedAdmin() {
-  if (byEmail.has('admin@voiceroi.local')) return
+  const adminEmail = process.env.ADMIN_EMAIL ?? (process.env.NODE_ENV === 'production' ? null : 'michael@revenuecs.com')
+  const adminPassword = process.env.ADMIN_PASSWORD ?? (process.env.NODE_ENV === 'production' ? null : 'admin')
+  if (!adminEmail || !adminPassword) return
+  if (byEmail.has(adminEmail.toLowerCase())) return
   const admin: User = {
     id: 'admin',
-    email: 'admin@voiceroi.local',
-    passwordHash: hashPassword('admin'),
+    email: adminEmail.toLowerCase(),
+    passwordHash: hashPassword(adminPassword),
     role: 'admin',
     onboardingComplete: true,
     allowedModules: [...MODULE_IDS],
@@ -127,4 +130,13 @@ export function setOnboardingComplete(userId: string): void {
     users.set(userId, { ...u, onboardingComplete: true })
     saveToFile()
   }
+}
+
+export function updateUserModules(userId: string, modules: ModuleId[]): User | null {
+  const u = users.get(userId)
+  if (!u) return null
+  const updated = { ...u, allowedModules: modules }
+  users.set(userId, updated)
+  saveToFile()
+  return updated
 }
