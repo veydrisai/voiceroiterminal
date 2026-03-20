@@ -3,6 +3,9 @@ import { getSql } from '@/lib/db'
 
 export async function POST(request: NextRequest) {
   try {
+    // Verify webhook secret from header or query param
+    const providedSecret = request.headers.get('x-webhook-secret') ?? new URL(request.url).searchParams.get('secret');
+
     const body = await request.json()
     const {
       tenantId,
@@ -21,6 +24,41 @@ export async function POST(request: NextRequest) {
     }
 
     const sql = getSql()
+
+    // Fetch tenant credentials to verify webhook secret
+    const credRows = await sql`
+      SELECT webhook_secret FROM tenant_credentials WHERE tenant_id = ${tenantId} LIMIT 1`
+    const cred = (credRows as { webhook_secret: string | null }[])[0]
+
+    // Always enforce secret — if no credentials row exists OR secret is not configured,
+    // reject the request. Tenants must configure a webhook secret in Settings.
+    if (!cred || !cred.webhook_secret) {
+      return NextResponse.json({ error: 'Webhook secret not configured for this tenant' }, { status: 403 })
+    }
+    if (!providedSecret || providedSecret !== cred.webhook_secret) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Validate revenue
+    const rawRevenue = body.revenue ?? body.value ?? 0;
+    const revenue = Number(rawRevenue);
+    if (!isFinite(revenue) || revenue < 0) {
+      return NextResponse.json({ error: 'Invalid revenue value' }, { status: 400 });
+    }
+
+    // Validate date if provided
+    if (body.booked_at) {
+      const ts = Date.parse(body.booked_at);
+      if (isNaN(ts)) {
+        return NextResponse.json({ error: 'Invalid booked_at date' }, { status: 400 });
+      }
+    }
+
+    // Sanitize strings
+    const intent = typeof body.intent === 'string' ? body.intent.slice(0, 100) : null;
+    const outcome = typeof body.outcome === 'string' ? body.outcome.slice(0, 100) : null;
+    void intent; void outcome; // available for future use
+
     let callId: string | null = null
     if (callSid) {
       const callRows = await sql`

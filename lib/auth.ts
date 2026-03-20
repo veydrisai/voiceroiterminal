@@ -1,7 +1,12 @@
-import { createHmac, randomBytes, timingSafeEqual } from 'crypto'
+import { createHmac, timingSafeEqual } from 'crypto'
+import bcrypt from 'bcryptjs'
 import { SESSION_COOKIE } from './sessionCookie'
 
-const SESSION_SECRET = process.env.SESSION_SECRET || 'voice-roi-dev-secret-change-in-production'
+const SESSION_SECRET = process.env.SESSION_SECRET ?? (
+  process.env.NODE_ENV === 'production'
+    ? (() => { throw new Error('SESSION_SECRET env var is required in production') })()
+    : 'voice-roi-dev-secret-change-in-production'
+)
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7 // 7 days
 
 export type SessionPayload = {
@@ -16,21 +21,27 @@ function sign(value: string): string {
   return createHmac('sha256', SESSION_SECRET).update(value).digest('hex')
 }
 
+// bcrypt cost factor — 12 is the recommended minimum for production
+const BCRYPT_ROUNDS = 12
+
 export function hashPassword(password: string): string {
-  const salt = randomBytes(16).toString('hex')
-  const hash = createHmac('sha256', SESSION_SECRET).update(salt + password).digest('hex')
-  return `${salt}:${hash}`
+  return bcrypt.hashSync(password, BCRYPT_ROUNDS)
 }
 
 export function verifyPassword(password: string, stored: string): boolean {
-  const [salt, hash] = stored.split(':')
-  if (!salt || !hash) return false
-  const expected = createHmac('sha256', SESSION_SECRET).update(salt + password).digest('hex')
-  try {
-    return timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(expected, 'hex'))
-  } catch {
-    return false
+  // Support legacy HMAC hashes (salt:hash format) during migration
+  if (stored.includes(':') && !stored.startsWith('$2')) {
+    const [salt, hash] = stored.split(':')
+    if (!salt || !hash) return false
+    const expected = createHmac('sha256', SESSION_SECRET).update(salt + password).digest('hex')
+    try {
+      return timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(expected, 'hex'))
+    } catch {
+      return false
+    }
   }
+  // Standard bcrypt verification
+  return bcrypt.compareSync(password, stored)
 }
 
 export function createSessionCookie(payload: SessionPayload): string {

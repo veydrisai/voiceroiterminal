@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   if (!session || session.role !== 'admin') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
-  const clients = listClients().map((u) => ({
+  const clients = (await listClients()).map((u) => ({
     id: u.id,
     email: u.email,
     onboardingComplete: u.onboardingComplete,
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     const allowedModules = Array.isArray(modules) && modules.length > 0
       ? (modules as string[]).filter((m): m is ModuleId => MODULE_IDS.includes(m as ModuleId))
       : undefined
-    const user = createUser({ email, password, role: 'client', allowedModules })
+    const user = await createUser({ email, password, role: 'client', allowedModules })
     return NextResponse.json({
       user: {
         id: user.id,

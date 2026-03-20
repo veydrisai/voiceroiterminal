@@ -9,6 +9,7 @@ const STEPS = [
   { id: 'welcome', title: 'Welcome', fields: [] },
   { id: 'twilio', title: 'Twilio', fields: ['twilioAccountSid', 'twilioAuthToken'] },
   { id: 'vapi', title: 'Vapi & Make.com', fields: ['vapiApiKey', 'crmEndpoint', 'webhookSecret'] },
+  { id: 'revenue', title: 'Revenue', fields: ['defaultRevenuePerBooking'] },
   { id: 'done', title: "You're set", fields: [] },
 ]
 
@@ -18,6 +19,7 @@ const FIELD_LABELS: Record<string, string> = {
   vapiApiKey: 'Vapi API Key',
   crmEndpoint: 'Make.com webhook target URL (optional)',
   webhookSecret: 'Webhook secret (optional)',
+  defaultRevenuePerBooking: 'Default revenue per booking ($)',
 }
 
 
@@ -25,6 +27,7 @@ export default function OnboardingPage() {
   const router = useRouter()
   const [stepIndex, setStepIndex] = useState(0)
   const [keys, setKeys] = useState<Record<string, string>>({})
+  const [revenuePerBooking, setRevenuePerBooking] = useState('')
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -124,6 +127,33 @@ export default function OnboardingPage() {
           </div>
         )}
 
+        {step.id === 'revenue' && (
+          <div className="onboarding-step">
+            <h2 className="onboarding-step-title">Revenue Tracking</h2>
+            <p className="onboarding-p">What is your average revenue per booked appointment? This drives your ROI dashboard calculations.</p>
+            <label className="onboarding-field">
+              <span className="auth-label">{FIELD_LABELS['defaultRevenuePerBooking']}</span>
+              <input
+                type="number"
+                className="auth-input"
+                value={revenuePerBooking}
+                onChange={(e) => setRevenuePerBooking(e.target.value)}
+                placeholder="150"
+                min="0"
+                autoComplete="off"
+              />
+            </label>
+            <button
+              type="button"
+              className="onboarding-back liquid-btn"
+              style={{ marginTop: '8px', fontSize: '13px', opacity: 0.6 }}
+              onClick={() => setStepIndex((i) => i + 1)}
+            >
+              Skip for now
+            </button>
+          </div>
+        )}
+
         {step.id === 'done' && (
           <div className="onboarding-step">
             <h1 className="auth-title">All set</h1>
@@ -141,7 +171,16 @@ export default function OnboardingPage() {
             type="button"
             className="auth-submit liquid-btn"
             onClick={async () => {
-              if (step.fields.length > 0) {
+              if (step.id === 'revenue' && revenuePerBooking) {
+                setSaving(true)
+                await fetch('/api/users/revenue-settings', {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  credentials: 'include',
+                  body: JSON.stringify({ defaultRevenuePerBooking: parseFloat(revenuePerBooking) }),
+                }).catch(() => {})
+                setSaving(false)
+              } else if (step.fields.length > 0) {
                 setSaving(true)
                 await fetch('/api/users/api-keys', {
                   method: 'PUT',

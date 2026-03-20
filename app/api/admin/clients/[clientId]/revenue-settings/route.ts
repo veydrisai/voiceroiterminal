@@ -31,7 +31,7 @@ export async function GET(
   if (!clientId) {
     return NextResponse.json({ error: 'Bad request' }, { status: 400 })
   }
-  const user = getUserById(clientId)
+  const user = await getUserById(clientId)
   if (!user || user.role !== 'client') {
     return NextResponse.json({ error: 'Client not found' }, { status: 404 })
   }
@@ -68,7 +68,7 @@ export async function PUT(
   if (!clientId) {
     return NextResponse.json({ error: 'Bad request' }, { status: 400 })
   }
-  const user = getUserById(clientId)
+  const user = await getUserById(clientId)
   if (!user || user.role !== 'client') {
     return NextResponse.json({ error: 'Client not found' }, { status: 404 })
   }

@@ -1,6 +1,26 @@
 -- VoiceROI Terminal – Neon schema (no RLS; app enforces tenant_id)
 -- Run this once in Neon SQL Editor (Dashboard → SQL Editor) or via psql.
 
+-- App users (replaces data/users.json file storage)
+CREATE TABLE IF NOT EXISTS app_users (
+  id text PRIMARY KEY,
+  email text UNIQUE NOT NULL,
+  password_hash text NOT NULL,
+  role text NOT NULL DEFAULT 'client',
+  onboarding_complete boolean DEFAULT false,
+  allowed_modules text[] DEFAULT ARRAY['performance', 'analytics', 'system'],
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_app_users_email ON app_users(email);
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_app_users_updated_at') THEN
+    CREATE TRIGGER update_app_users_updated_at BEFORE UPDATE ON app_users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+  END IF;
+END $$;
+
 -- Tenants
 CREATE TABLE IF NOT EXISTS tenants (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -69,7 +89,8 @@ CREATE TABLE IF NOT EXISTS conversations (
   revenue_cents integer DEFAULT 0,
   metadata jsonb DEFAULT '{}',
   created_at timestamptz DEFAULT now(),
-  updated_at timestamptz DEFAULT now()
+  updated_at timestamptz DEFAULT now(),
+  CONSTRAINT conversations_tenant_external_unique UNIQUE (tenant_id, external_id)
 );
 CREATE INDEX IF NOT EXISTS idx_conversations_tenant_created ON conversations(tenant_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_conversations_call ON conversations(call_id);

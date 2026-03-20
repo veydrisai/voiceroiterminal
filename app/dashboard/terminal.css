@@ -1440,3 +1440,135 @@ select.auth-input {
     padding: 10px;
   }
 }
+
+/* ── Gemini AI Insights Panel ─────────────────────────────────────────────── */
+
+.gemini-insights-panel {
+  background: #0d1117;
+  border: 1px solid #1e3a5f;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.panel-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #8b949e;
+}
+
+.gemini-badge {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: #4285f4;
+  background: rgba(66, 133, 244, 0.12);
+  border: 1px solid rgba(66, 133, 244, 0.3);
+  border-radius: 4px;
+  padding: 2px 7px;
+}
+
+.insights-body {
+  min-height: 60px;
+  margin-bottom: 14px;
+}
+
+.insights-skeleton {
+  height: 60px;
+  border-radius: 6px;
+  background: #161b22;
+}
+
+.insights-error {
+  color: #f85149;
+  font-size: 13px;
+}
+
+.insights-text {
+  color: #c9d1d9;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.insights-text p {
+  margin: 0 0 6px 0;
+}
+
+.insights-text p:last-child {
+  margin-bottom: 0;
+}
+
+.chat-row {
+  display: flex;
+  gap: 8px;
+}
+
+.chat-input {
+  flex: 1;
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: #c9d1d9;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.chat-input:focus {
+  border-color: #4285f4;
+}
+
+.chat-input::placeholder {
+  color: #484f58;
+}
+
+.chat-send-btn {
+  background: #4285f4;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.chat-send-btn:hover:not(:disabled) {
+  background: #5a95f5;
+}
+
+.chat-send-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.chat-answer {
+  margin-top: 12px;
+  padding: 12px;
+  background: #161b22;
+  border-radius: 6px;
+  border-left: 3px solid #4285f4;
+  color: #c9d1d9;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.chat-answer p {
+  margin: 0 0 6px 0;
+}
+
+.chat-answer p:last-child {
+  margin-bottom: 0;
+}

@@ -24,7 +24,7 @@ export async function GET(
   }
 
   const { clientId } = await resolveParams(context.params)
-  const user = getUserById(clientId)
+  const user = await getUserById(clientId)
   if (!user) {
     return NextResponse.json({ error: 'Client not found' }, { status: 404 })
   }
@@ -34,6 +34,13 @@ export async function GET(
     return NextResponse.json({ conversations: [] })
   }
 
+  const searchParams = request.nextUrl.searchParams
+  const rawLimit = parseInt(searchParams.get('limit') ?? '50', 10)
+  const limit = isNaN(rawLimit) || rawLimit < 1 ? 50 : Math.min(rawLimit, 100)
+  const rawPage = parseInt(searchParams.get('page') ?? '1', 10)
+  const page = isNaN(rawPage) || rawPage < 1 ? 1 : rawPage
+  const offset = (page - 1) * limit
+
   const sql = getSql()
   const rows = await sql`
     SELECT c.id, c.created_at, c.intent, c.outcome, c.revenue_cents, c.duration_sec,
@@ -42,7 +49,7 @@ export async function GET(
     LEFT JOIN calls cl ON cl.id = c.call_id
     WHERE c.tenant_id = ${tenant.id}
     ORDER BY c.created_at DESC
-    LIMIT 100`
+    LIMIT ${limit} OFFSET ${offset}`
 
   const conversations = (rows as {
     id: string
@@ -66,5 +73,5 @@ export async function GET(
     rawOutcome: r.outcome ?? '',
   }))
 
-  return NextResponse.json({ conversations })
+  return NextResponse.json({ conversations, pagination: { page, limit } })
 }

@@ -11,8 +11,10 @@
     "db:setup": "node scripts/run-neon-schema.mjs"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@neondatabase/serverless": "^1.0.2",
     "@netlify/plugin-nextjs": "^5.15.8",
+    "bcryptjs": "^3.0.3",
     "next": "14.2.18",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

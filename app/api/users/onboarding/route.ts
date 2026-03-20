@@ -8,8 +8,8 @@ export async function PATCH(request: NextRequest) {
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
-  setOnboardingComplete(session.userId)
-  const user = getUserById(session.userId)
+  await setOnboardingComplete(session.userId)
+  const user = await getUserById(session.userId)
   const allowedModules = user ? getAllowedModules(user) : (session.allowedModules ?? [])
   const payload = {
     userId: session.userId,

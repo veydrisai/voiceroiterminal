@@ -172,7 +172,11 @@ export function DemoSessionProvider({ children, initialLoggedIn = false }: { chi
           outcome: updates.outcome,
           revenue: updates.revenue,
         }),
-      }).catch(() => {})
+      }).catch((err) => {
+        console.error('Failed to update pipeline row:', err);
+        // re-throw so callers can handle it
+        throw err;
+      })
     }
   }, [])
 
