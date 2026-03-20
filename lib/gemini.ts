@@ -20,7 +20,7 @@ export type PipelineRow = {
 function getModel() {
   const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) return null
-  return new GoogleGenerativeAI(apiKey).getGenerativeModel({ model: 'gemini-1.5-flash' })
+  return new GoogleGenerativeAI(apiKey).getGenerativeModel({ model: 'gemini-2.5-flash' })
 }
 
 export async function generateInsights(kpis: KPIs, recentCalls: PipelineRow[]): Promise<string> {
