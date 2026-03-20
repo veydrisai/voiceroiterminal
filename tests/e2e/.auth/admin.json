@@ -1,0 +1,15 @@
+{
+  "cookies": [
+    {
+      "name": "voice_roi_session",
+      "value": "eyJ1c2VySWQiOiJhZG1pbiIsImVtYWlsIjoibWljaGFlbEByZXZlbnVlY3MuY29tIiwicm9sZSI6ImFkbWluIiwib25ib2FyZGluZ0NvbXBsZXRlIjp0cnVlLCJhbGxvd2VkTW9kdWxlcyI6WyJwZXJmb3JtYW5jZSIsImFuYWx5dGljcyIsIm51cnR1cmUiLCJyZXZpZXciLCJzeXN0ZW0iXX0.91250870bf662a7bcbb4edf4fb8964c6e40881c1b7fe34048b98318db8ccefd0",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1774584589.701,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": []
+}
