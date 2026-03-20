@@ -13,6 +13,10 @@ import { MODULES_NAV, DEFAULT_CLIENT_MODULES } from '@/lib/moduleConfig'
 
 type Client = { id: string; email: string; onboardingComplete: boolean; allowedModules?: string[]; createdAt: string }
 type RevenueSettings = { defaultRevenuePerBooking?: number; currency?: string }
+type ClientCredentials = {
+  twilioAccountSid: string; twilioAuthToken: string
+  vapiApiKey: string; crmEndpoint: string; webhookSecret: string
+}
 type Conversation = {
   id: string; time: string; caller: string; intent: string; outcome: string
   revenue: number; durationSec: number; rawIntent: string; rawOutcome: string
@@ -35,6 +39,12 @@ export default function AdminPage() {
   const [pipelineClientId, setPipelineClientId] = useState<string>('')
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [pipelineLoading, setPipelineLoading] = useState(false)
+  const [setupClientId, setSetupClientId] = useState('')
+  const [setupCreds, setSetupCreds] = useState<ClientCredentials>({ twilioAccountSid: '', twilioAuthToken: '', vapiApiKey: '', crmEndpoint: '', webhookSecret: '' })
+  const [setupRevenue, setSetupRevenue] = useState('')
+  const [setupSaving, setSetupSaving] = useState(false)
+  const [setupMessage, setSetupMessage] = useState<{ ok: boolean; text: string } | null>(null)
+
   const [editingConv, setEditingConv] = useState<Conversation | null>(null)
   const [editForm, setEditForm] = useState({ intent: '', outcome: '', revenue: 0 })
   const [editSaving, setEditSaving] = useState(false)
@@ -42,6 +52,57 @@ export default function AdminPage() {
 
   function toggleModule(id: string) {
     setModules((prev) => prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id])
+  }
+
+  function loadSetupClient(clientId: string) {
+    setSetupClientId(clientId)
+    setSetupMessage(null)
+    setSetupCreds({ twilioAccountSid: '', twilioAuthToken: '', vapiApiKey: '', crmEndpoint: '', webhookSecret: '' })
+    setSetupRevenue('')
+    if (!clientId) return
+    fetch(`/api/admin/clients/${clientId}/credentials`, { credentials: 'include' })
+      .then((r) => r.json())
+      .then((data) => { if (data.credentials) setSetupCreds((prev) => ({ ...prev, ...data.credentials })) })
+      .catch(() => {})
+    fetch(`/api/admin/clients/${clientId}/revenue-settings`, { credentials: 'include' })
+      .then((r) => r.json())
+      .then((data) => { if (data.settings?.defaultRevenuePerBooking != null) setSetupRevenue(String(data.settings.defaultRevenuePerBooking)) })
+      .catch(() => {})
+  }
+
+  async function handleSetupClient(e: React.FormEvent) {
+    e.preventDefault()
+    if (!setupClientId) return
+    setSetupSaving(true)
+    setSetupMessage(null)
+    try {
+      const [credsRes, revenueRes] = await Promise.all([
+        fetch(`/api/admin/clients/${setupClientId}/credentials`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(setupCreds),
+        }),
+        setupRevenue ? fetch(`/api/admin/clients/${setupClientId}/revenue-settings`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ defaultRevenuePerBooking: Number(setupRevenue) }),
+        }) : Promise.resolve({ ok: true }),
+      ])
+      if (!credsRes.ok || !revenueRes.ok) {
+        setSetupMessage({ ok: false, text: 'Failed to save — check all fields.' })
+        return
+      }
+      // Mark onboarding complete so client logs in directly to dashboard
+      await fetch(`/api/admin/clients/${setupClientId}/complete-setup`, { method: 'POST', credentials: 'include' })
+      setClients((prev) => prev.map((c) => c.id === setupClientId ? { ...c, onboardingComplete: true } : c))
+      setSetupMessage({ ok: true, text: 'Client is fully configured and ready. They can log in directly to the dashboard.' })
+    } catch {
+      setSetupMessage({ ok: false, text: 'Something went wrong' })
+    } finally {
+      setSetupSaving(false)
+    }
   }
 
   function loadClientRevenue(clientId: string) {
@@ -194,6 +255,42 @@ export default function AdminPage() {
                   {message && <p className={message.type === 'ok' ? 'admin-msg-ok' : 'auth-error'} role="alert">{message.text}</p>}
                   <button type="submit" className="auth-submit liquid-btn" disabled={creating}>{creating ? 'Creating...' : 'Create account'}</button>
                 </form>
+              </div>
+
+              <div className="admin-card liquid-card">
+                <h2 className="admin-card-title">Configure client — instant setup</h2>
+                <p className="admin-desc">Select a client, enter their API keys and revenue default, and click Save. They'll skip onboarding and land directly on their dashboard.</p>
+                {clients.length === 0 ? <p className="admin-muted">Create a client first.</p> : (
+                  <form onSubmit={handleSetupClient} className="admin-form">
+                    <label className="auth-label">Client</label>
+                    <select className="auth-input" value={setupClientId} onChange={(e) => loadSetupClient(e.target.value)} required>
+                      <option value="">Select a client…</option>
+                      {clients.map((c) => <option key={c.id} value={c.id}>{c.email}{c.onboardingComplete ? ' ✓' : ''}</option>)}
+                    </select>
+                    {setupClientId && (
+                      <>
+                        <p className="auth-label" style={{ marginTop: 16, marginBottom: 4, color: 'var(--text-muted)', fontSize: 11, letterSpacing: '0.08em' }}>TWILIO</p>
+                        <label className="auth-label">Account SID</label>
+                        <input type="text" className="auth-input" value={setupCreds.twilioAccountSid} onChange={(e) => setSetupCreds((c) => ({ ...c, twilioAccountSid: e.target.value }))} placeholder="AC…" autoComplete="off" />
+                        <label className="auth-label">Auth Token</label>
+                        <input type="password" className="auth-input" value={setupCreds.twilioAuthToken} onChange={(e) => setSetupCreds((c) => ({ ...c, twilioAuthToken: e.target.value }))} placeholder="••••••••" autoComplete="off" />
+                        <p className="auth-label" style={{ marginTop: 16, marginBottom: 4, color: 'var(--text-muted)', fontSize: 11, letterSpacing: '0.08em' }}>VAPI</p>
+                        <label className="auth-label">Vapi API Key</label>
+                        <input type="password" className="auth-input" value={setupCreds.vapiApiKey} onChange={(e) => setSetupCreds((c) => ({ ...c, vapiApiKey: e.target.value }))} placeholder="••••••••" autoComplete="off" />
+                        <p className="auth-label" style={{ marginTop: 16, marginBottom: 4, color: 'var(--text-muted)', fontSize: 11, letterSpacing: '0.08em' }}>MAKE.COM / WEBHOOK</p>
+                        <label className="auth-label">Webhook Secret</label>
+                        <input type="password" className="auth-input" value={setupCreds.webhookSecret} onChange={(e) => setSetupCreds((c) => ({ ...c, webhookSecret: e.target.value }))} placeholder="••••••••" autoComplete="off" />
+                        <label className="auth-label">Make.com target URL (optional)</label>
+                        <input type="text" className="auth-input" value={setupCreds.crmEndpoint} onChange={(e) => setSetupCreds((c) => ({ ...c, crmEndpoint: e.target.value }))} placeholder="https://hook.make.com/…" autoComplete="off" />
+                        <p className="auth-label" style={{ marginTop: 16, marginBottom: 4, color: 'var(--text-muted)', fontSize: 11, letterSpacing: '0.08em' }}>REVENUE</p>
+                        <label className="auth-label">Default revenue per booking ($)</label>
+                        <input type="number" min={0} className="auth-input" value={setupRevenue} onChange={(e) => setSetupRevenue(e.target.value)} placeholder="e.g. 150" />
+                        {setupMessage && <p className={setupMessage.ok ? 'admin-msg-ok' : 'auth-error'} role="alert">{setupMessage.text}</p>}
+                        <button type="submit" className="auth-submit liquid-btn" disabled={setupSaving}>{setupSaving ? 'Saving…' : 'Save & activate client'}</button>
+                      </>
+                    )}
+                  </form>
+                )}
               </div>
 
               <div className="admin-card liquid-card">
