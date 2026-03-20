@@ -1,12 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
-const apiKey = process.env.GEMINI_API_KEY ?? ''
-const genAI = new GoogleGenerativeAI(apiKey)
-
-export function getGeminiModel(modelName = 'gemini-1.5-flash') {
-  return genAI.getGenerativeModel({ model: modelName })
-}
-
 export type KPIs = {
   dailyCallVolume: number
   confirmedBookings: number
@@ -24,10 +17,15 @@ export type PipelineRow = {
   revenue: number
 }
 
-export async function generateInsights(kpis: KPIs, recentCalls: PipelineRow[]): Promise<string> {
-  if (!apiKey) return 'AI insights unavailable — GEMINI_API_KEY not configured.'
+function getModel() {
+  const apiKey = process.env.GEMINI_API_KEY
+  if (!apiKey) return null
+  return new GoogleGenerativeAI(apiKey).getGenerativeModel({ model: 'gemini-1.5-flash' })
+}
 
-  const model = getGeminiModel()
+export async function generateInsights(kpis: KPIs, recentCalls: PipelineRow[]): Promise<string> {
+  const model = getModel()
+  if (!model) return 'Add GEMINI_API_KEY to your environment variables to enable AI insights.'
 
   const outcomeBreakdown: Record<string, number> = {}
   const intentBreakdown: Record<string, number> = {}
@@ -57,9 +55,8 @@ Provide insights:`
 }
 
 export async function answerDataQuestion(question: string, kpis: KPIs, recentCalls: PipelineRow[]): Promise<string> {
-  if (!apiKey) return 'AI chat unavailable — GEMINI_API_KEY not configured.'
-
-  const model = getGeminiModel()
+  const model = getModel()
+  if (!model) return 'Add GEMINI_API_KEY to your environment variables to enable AI chat.'
 
   const prompt = `You are a voice AI ROI assistant. Answer the following question about the user's dashboard data concisely (2-4 sentences max). Be direct and data-driven.
 
