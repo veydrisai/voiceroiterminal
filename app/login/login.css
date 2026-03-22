@@ -197,3 +197,14 @@
   background: rgba(255, 255, 255, 0.06);
   margin: 28px 0 24px;
 }
+
+/* Mobile fixes */
+@media (max-width: 480px) {
+  .auth-shell {
+    padding: 16px !important;
+  }
+  .auth-card {
+    padding: 24px !important;
+    border-radius: 16px !important;
+  }
+}

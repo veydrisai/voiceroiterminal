@@ -140,3 +140,11 @@
   border-radius: 4px;
   color: var(--text-muted);
 }
+
+/* Mobile fixes */
+@media (max-width: 480px) {
+  .settings-main {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+}
